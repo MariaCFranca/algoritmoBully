@@ -95,6 +95,13 @@ public class Controller {
 				fila.add(novoProcesso);
 				processos.add(novoProcesso);
 				mensagem += "\n CRIAR PROCESSO: Criado novo processo " + id;
+				mensagem += " : {";
+
+				for (Process process : processos) {
+					mensagem += process.getId() + ", END";
+				}
+
+				mensagem += "}";
 			}
 		}, interval, interval);
 	}
@@ -120,7 +127,7 @@ public class Controller {
 	private void elegerCoordenador() {
 		// N�o especificado qual o tipo de elei��o no problema.
 		// Buscamos o maior ID para ser o coordenador.
-		for (int i = 0; i < processos.size() - 1; i++) {
+		for (int i = 0; i < processos.size(); i++) {
 			Process processo = processos.get(i);
 			if (processo.isAtivo() && (!coordenador.isAtivo() || processo.getId() > coordenador.getId())) {
 				coordenador = processo;
