@@ -36,17 +36,41 @@ public class Controller {
 		timerDoConsole(1000); // 1s
 	}
 
-	private void timerDoConsole(int interval) {
+	private void criaProcesso(int interval) {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			public void run() {
-				System.out.println(TEMPO_EXECUTANDO++ + "s " + mensagem);
-				mensagem = "";
+				int id = numeroAleatorio.buscaIdAleatoriaNaoRepetida();
+				Process novoProcesso = new Process(id, false);
+				fila.add(novoProcesso);
+				processos.add(novoProcesso);
+				mensagem += "\n CRIAR PROCESSO: Criado novo processo " + id;
+				mensagem += " : { ";
 
-				if (TEMPO_EXECUTANDO > TEMPO_EXECUCAO_TOTAL) {
-					timer.cancel();
+				for (Process process : processos) {
+					mensagem += process.getId() + " ";
 				}
+
+				mensagem += "}";
 			}
-		}, 1, interval);
+		}, interval, interval);
+	}
+
+	private void matarCoordenador(int interval) {
+		timer.scheduleAtFixedRate(new TimerTask() {
+			public void run() {
+				mensagem += "\n INATIVAR COORDENADOR: coordenador " + processos.get(indexCoordenador).getId()
+						+ " inativado, fila limpa";
+				processos.get(indexCoordenador).setAtivo(false);
+				fila.clear();
+
+				if (recurso.isEmUso()) {
+					mensagem += "\n CONSUMIR RECURSO: Consumo de recurso cancelado";
+					recurso.setEmUso(false);
+				}
+
+				elegerCoordenador();
+			}
+		}, interval, interval);
 	}
 
 	private void processaRecurso(int interval) {
@@ -87,43 +111,6 @@ public class Controller {
 		}, interval, interval);
 	}
 
-	private void criaProcesso(int interval) {
-		timer.scheduleAtFixedRate(new TimerTask() {
-			public void run() {
-				int id = numeroAleatorio.buscaIdAleatoriaNaoRepetida();
-				Process novoProcesso = new Process(id, false);
-				fila.add(novoProcesso);
-				processos.add(novoProcesso);
-				mensagem += "\n CRIAR PROCESSO: Criado novo processo " + id;
-				mensagem += " : {";
-
-				for (Process process : processos) {
-					mensagem += process.getId() + ", END";
-				}
-
-				mensagem += "}";
-			}
-		}, interval, interval);
-	}
-
-	private void matarCoordenador(int interval) {
-		timer.scheduleAtFixedRate(new TimerTask() {
-			public void run() {
-				mensagem += "\n INATIVAR COORDENADOR: coordenador " + processos.get(indexCoordenador).getId()
-						+ " inativado, fila limpa";
-				processos.get(indexCoordenador).setAtivo(false);
-				fila.clear();
-
-				if (recurso.isEmUso()) {
-					mensagem += "\n CONSUMIR RECURSO: Consumo de recurso cancelado";
-					recurso.setEmUso(false);
-				}
-
-				elegerCoordenador();
-			}
-		}, interval, interval);
-	}
-
 	private void elegerCoordenador() {
 		// N�o especificado qual o tipo de elei��o no problema.
 		// Buscamos o maior ID para ser o coordenador.
@@ -138,4 +125,16 @@ public class Controller {
 		mensagem += "\n ELEGER COORDENADOR: Novo coordenador elegido " + coordenador.getId();
 	}
 
+	private void timerDoConsole(int interval) {
+		timer.scheduleAtFixedRate(new TimerTask() {
+			public void run() {
+				System.out.println(TEMPO_EXECUTANDO++ + "s " + mensagem);
+				mensagem = "";
+
+				if (TEMPO_EXECUTANDO > TEMPO_EXECUCAO_TOTAL) {
+					timer.cancel();
+				}
+			}
+		}, 1, interval);
+	}
 }
